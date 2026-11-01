@@ -1,0 +1,3 @@
+# GitHub Daily Automation Bot dependencies (zero runtime deps; stdlib only)
+# Dev/test only:
+#   pytest>=8.0  (lihat requirements-dev.txt)
