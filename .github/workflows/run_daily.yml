@@ -17,8 +17,7 @@ on:
         default: 'main'
 
 permissions:
-  contents: write
-  metadata: read
+  contents: write  # push commit maintenance
 
 concurrency:
   group: daily-automation-${{ github.ref }}
