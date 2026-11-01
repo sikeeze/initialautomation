@@ -65,9 +65,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git identity
+        # Author = user supaya commit tercatat di contribution graph.
+        # Committer tetap bot karena push memakai GITHUB_TOKEN.
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Aikhel sefriandika"
+          git config user.email "147973151+sikeeze@users.noreply.github.com"
 
       - name: Setup Python
         uses: actions/setup-python@v5
