@@ -134,6 +134,35 @@ Setiap eksekusi menghasilkan:
 -   Laporan di `MAINTENANCE_REPORT.md` (jika ada perubahan)
 -   Commit SHA + jumlah file berubah, jika ada commit
 
+## Dashboard Web
+
+Dashboard interaktif tersedia di GitHub Pages:
+
+**https://sikeeze.github.io/initialautomation/**
+
+Fitur:
+
+-   Statistik run (total, sukses, jadwal berikutnya)
+-   Riwayat eksekusi dengan status dan link ke detail
+-   Daftar commit terbaru
+-   Trigger run manual dari browser
+-   Toggle on/off untuk tiap task maintenance
+-   Mode dry run
+
+Cara pakai:
+
+1.  Buka URL di atas.
+2.  Masukkan repository (default: `sikeeze/initialautomation`).
+3.  Masukkan GitHub PAT. Token disimpan di `localStorage` browser
+    kamu — hanya dikirim ke `api.github.com`, tidak ke pihak lain.
+    Buat PAT fine-grained dengan permission:
+    -   **Contents**: Read (membaca commit)
+    -   **Actions**: Read and write (trigger run, baca riwayat)
+    -   **Metadata**: Read (wajib)
+
+Token read-only juga bisa untuk monitoring; hanya trigger run yang
+butuh permission Actions: write.
+
 ## Testing
 
 ```bash
