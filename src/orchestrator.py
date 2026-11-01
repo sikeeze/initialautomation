@@ -28,6 +28,7 @@ from .maintenance import (
     check_links_task,
     dependency_check_task,
     ensure_gitignore_task,
+    heartbeat_task,
     stale_branch_report_task,
     format_check_task,
 )
@@ -41,6 +42,7 @@ COMMIT_TYPES = {
     "stale-branch-report": "docs",
     "format-check": "style",
     "dependency-check": "test",
+    "heartbeat": "chore",
 }
 
 
@@ -100,6 +102,18 @@ def run_maintenance(cfg: Config) -> StatusReport:
         results.append(res)
         report.add_task(res.name, res.status, res.detail)
         logger.info("Task %s -> %s: %s", res.name, res.status, res.detail)
+
+    # Heartbeat setelah task lain supaya ringkasannya lengkap.  Idempoten
+    # per hari (WIB): hanya run pertama di tanggal itu yang commit.
+    try:
+        res = heartbeat_task(cfg.workspace, results)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Heartbeat error: %s", exc)
+        res = TaskResult(name="heartbeat", status="error", detail=str(exc))
+        report.add_error(f"heartbeat: {exc}")
+    results.append(res)
+    report.add_task(res.name, res.status, res.detail)
+    logger.info("Task %s -> %s: %s", res.name, res.status, res.detail)
 
     # Kumpulkan file yang berubah dari semua task
     files_to_stage: List[str] = []

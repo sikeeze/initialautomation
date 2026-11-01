@@ -169,3 +169,26 @@ def test_commit_message_no_change_default():
     results = [TaskResult(name="format-check", status="no-change", detail="ok")]
     msg = build_commit_message(results)
     assert msg.startswith("chore(maintenance): automated maintenance")
+
+
+def test_heartbeat_creates_entry_once(tmp_path):
+    from src.maintenance import heartbeat_task
+
+    results = [TaskResult(name="format-check", status="no-change", detail="ok")]
+    res1 = heartbeat_task(str(tmp_path), results)
+    assert res1.status == "changed"
+    assert res1.changed_files == ["ACTIVITY.md"]
+    res2 = heartbeat_task(str(tmp_path), results)
+    assert res2.status == "no-change"
+    assert res2.changed_files == []
+
+
+def test_heartbeat_content_documented(tmp_path):
+    from src.maintenance import heartbeat_task
+
+    results = [TaskResult(name="dead-link-check", status="no-change", detail="ok")]
+    heartbeat_task(str(tmp_path), results)
+    body = (tmp_path / "ACTIVITY.md").read_text(encoding="utf-8")
+    assert "Activity Log" in body
+    assert "WIB" in body
+    assert "dead-link-check=no-change" in body
