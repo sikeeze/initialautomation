@@ -2,8 +2,14 @@ name: Daily Automation
 
 on:
   schedule:
-    # 00:00 Asia/Jakarta (UTC+7) == 17:00 UTC hari sebelumnya
-    - cron: '0 17 * * *'
+    # Asia/Jakarta (UTC+7).  GitHub cron memakai UTC.
+    - cron: '0 23 * * *'   # 06:00 WIB
+    - cron: '0 3 * * *'    # 10:00 WIB
+    - cron: '0 5 * * *'    # 12:00 WIB
+    - cron: '0 8 * * *'    # 15:00 WIB
+    - cron: '0 11 * * *'   # 18:00 WIB
+    - cron: '0 14 * * *'   # 21:00 WIB
+    - cron: '0 17 * * *'   # 00:00 WIB
   workflow_dispatch:
     inputs:
       dry_run:
