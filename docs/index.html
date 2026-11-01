@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Daily Automation Bot</title>
+<style>
+:root{
+  --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3;
+  --muted:#8b949e; --green:#238636; --green2:#2ea043; --red:#f85149;
+  --yellow:#d29922; --blue:#58a6ff; --input:#0d1117;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:16px;max-width:980px;margin:0 auto}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:14px;margin:24px 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;gap:12px}
+@media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.stat .n{font-size:22px;font-weight:600}
+.stat .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+button{background:var(--green);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:6px;
+  padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer}
+button:hover{background:var(--green2)}
+button.secondary{background:var(--card);color:var(--text);border-color:var(--border)}
+button.secondary:hover{background:#21262d}
+button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],input[type=password]{background:var(--input);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px;width:100%}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.toggle:last-child{border-bottom:none}
+.toggle .nm{font-size:13px;font-weight:500}
+.toggle .ds{font-size:11px;color:var(--muted)}
+.sw{position:relative;width:38px;height:20px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sl{position:absolute;cursor:pointer;inset:0;background:#21262d;border:1px solid var(--border);
+  border-radius:20px;transition:.2s}
+.sl:before{content:"";position:absolute;height:14px;width:14px;left:2px;top:2px;background:var(--muted);
+  border-radius:50%;transition:.2s}
+.sw input:checked+.sl{background:var(--green)}
+.sw input:checked+.sl:before{transform:translateX(18px);background:#fff}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.b-green{background:rgba(35,134,54,.2);color:var(--green2)}
+.b-red{background:rgba(248,81,73,.15);color:var(--red)}
+.b-yellow{background:rgba(210,153,34,.15);color:var(--yellow)}
+.b-blue{background:rgba(88,166,255,.15);color:var(--blue)}
+.run{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.run .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.run .ttl{font-size:13px;font-weight:500}
+.run .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.run a{color:var(--blue);text-decoration:none;font-size:11px}
+.run a:hover{text-decoration:underline}
+pre{background:#010409;border:1px solid var(--border);border-radius:6px;padding:10px;
+  font-size:11px;overflow-x:auto;max-height:260px;overflow-y:auto;margin-top:8px;color:var(--muted)}
+.hidden{display:none}
+.err{color:var(--red);font-size:12px;margin-top:8px}
+.ok{color:var(--green2);font-size:12px;margin-top:8px}
+footer{color:var(--muted);font-size:11px;margin-top:24px;text-align:center}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<h1>GitHub Daily Automation Bot</h1>
+<div class="sub" id="repoLabel">Memuat…</div>
+
+<div id="setupCard" class="card">
+  <h2 style="margin-top:0">Konfigurasi</h2>
+  <div class="row">
+    <div style="flex:1;min-width:180px">
+      <label>Repository (owner/name)</label>
+      <input type="text" id="repoInput" placeholder="sikeeze/initialautomation">
+    </div>
+    <div style="flex:1;min-width:180px">
+      <label>GitHub PAT (fine-grained, repos:read + actions:write)</label>
+      <input type="password" id="tokenInput" placeholder="github_pat_…">
+    </div>
+    <div style="align-self:flex-end">
+      <button id="saveBtn">Simpan</button>
+    </div>
+  </div>
+  <div class="sub" style="margin:8px 0 0">Token disimpan di localStorage browser ini, hanya dikirim ke api.github.com.</div>
+  <div id="cfgErr" class="err"></div>
+</div>
+
+<div id="main" class="hidden">
+  <div class="stats" id="stats"></div>
+
+  <h2>Eksekusi Manual</h2>
+  <div class="card">
+    <div class="toggle">
+      <div>
+        <div class="nm">Dry run</div>
+        <div class="ds">Stage tanpa commit/push (aman untuk uji coba)</div>
+      </div>
+      <label class="sw"><input type="checkbox" id="dryRun"><span class="sl"></span></label>
+    </div>
+    <div style="margin-top:12px">
+      <button id="runBtn">Run sekarang</button>
+      <button id="refreshBtn" class="secondary">Refresh data</button>
+    </div>
+    <div id="runMsg"></div>
+  </div>
+
+  <h2>Task Maintenance</h2>
+  <div class="card">
+    <div class="toggle">
+      <div>
+        <div class="nm">Dead link check</div>
+        <div class="ds">Cek link mati di markdown</div>
+      </div>
+      <label class="sw"><input type="checkbox" id="run_link_check" checked><span class="sl"></span></label>
+    </div>
+    <div class="toggle">
+      <div>
+        <div class="nm">Stale branch report</div>
+        <div class="ds">Laporkan branch tanpa commit &gt;30 hari</div>
+      </div>
+      <label class="sw"><input type="checkbox" id="run_stale_branch_report" checked><span class="sl"></span></label>
+    </div>
+    <div class="toggle">
+      <div>
+        <div class="nm">Format check</div>
+        <div class="ds">Perbaiki trailing whitespace &amp; final newline</div>
+      </div>
+      <label class="sw"><input type="checkbox" id="run_format_check" checked><span class="sl"></span></label>
+    </div>
+    <div class="toggle">
+      <div>
+        <div class="nm">Dependency check</div>
+        <div class="ds">Catat dependency Python yang usang</div>
+      </div>
+      <label class="sw"><input type="checkbox" id="run_dependency_check" checked><span class="sl"></span></label>
+    </div>
+    <div class="sub" style="margin:10px 0 0">Toggle ini dikirim sebagai input saat menekan Run. Run terjadwal memakai default (semua on).</div>
+  </div>
+
+  <h2>Riwayat Run</h2>
+  <div id="runs"></div>
+
+  <h2>Commit Terbaru</h2>
+  <div id="commits"></div>
+</div>
+
+<footer>Dashboard GitHub Daily Automation Bot · data langsung dari GitHub API</footer>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const API = "https://api.github.com";
+const LS_REPO = "bot.repo", LS_TOKEN = "bot.token";
+const TASKS = ["run_link_check","run_stale_branch_report","run_format_check","run_dependency_check"];
+
+let repo = localStorage.getItem(LS_REPO) || "";
+let token = localStorage.getItem(LS_TOKEN) || "";
+
+function badge(html, cls, text){
+  return `<span class="badge ${cls}">${text}</span>`;
+}
+function statusBadge(s, c){
+  if (s === "completed" && c === "success") return badge("","b-green","success");
+  if (s === "completed") return badge("","b-red", c || "failure");
+  if (s === "in_progress") return badge("","b-blue","running");
+  return badge("","b-yellow", s || "queued");
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+async function gh(path, opts){
+  const res = await fetch(API + path, opts ? Object.assign({}, opts, {
+    headers: Object.assign({}, opts.headers || {}, token ? {Authorization:"Bearer "+token} : {})
+  }) : token ? {headers:{Authorization:"Bearer "+token}} : {});
+  const remaining = res.headers.get("X-RateLimit-Remaining");
+  if (remaining !== null) $("repoLabel").dataset.rate = remaining;
+  if (res.status === 401 || res.status === 403) throw new Error("Token ditolak atau rate limit (401/403). Cek PAT.");
+  if (!res.ok) throw new Error("GitHub API " + res.status);
+  return res.status === 204 ? null : res.json();
+}
+function ghPost(path, body){
+  return gh(path, {
+    method: "POST",
+    headers: {"Accept":"application/vnd.github+json","Content-Type":"application/json"},
+    body: body ? JSON.stringify(body) : undefined
+  });
+}
+function saved(name){ return localStorage.getItem("bot."+name) === "1"; }
+function setSaved(name, on){ localStorage.setItem("bot."+name, on ? "1":"0"); }
+
+// persisted toggles
+TASKS.forEach((t) => {
+  const el = $(t);
+  const savedState = localStorage.getItem("bot."+t);
+  if (savedState !== null) el.checked = savedState === "1";
+  el.addEventListener("change", () => setSaved(t, el.checked));
+});
+
+$("saveBtn").addEventListener("click", () => {
+  const r = $("repoInput").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+  const t = $("tokenInput").value.trim();
+  $("cfgErr").textContent = "";
+  if (!r || !r.includes("/")) { $("cfgErr").textContent = "Repository format harus owner/name."; return; }
+  if (!t) { $("cfgErr").textContent = "Token wajib diisi."; return; }
+  repo = r; token = t;
+  localStorage.setItem(LS_REPO, r); localStorage.setItem(LS_TOKEN, t);
+  loadAll();
+});
+
+$("runBtn").addEventListener("click", async () => {
+  $("runMsg").innerHTML = '<span class="spin"></span> Mem-trigger workflow…';
+  try {
+    const wf = await gh(`/repos/${repo}/actions/workflows`);
+    const daily = wf.workflows.find((w) => w.path.includes("run_daily"));
+    if (!daily) throw new Error("Workflow run_daily.yml tidak ditemukan. Aktifkan GitHub Actions dulu.");
+    const inputs = { dry_run: String($("dryRun").checked) };
+    TASKS.forEach((t) => { inputs[t] = String($(t).checked); });
+    await ghPost(`/repos/${repo}/actions/workflows/${daily.id}/dispatches`, {ref:"main", inputs});
+    $("runMsg").innerHTML = '<span class="ok">Trigger terkirim. Run baru muncul dalam ~10 detik — tekan Refresh.</span>';
+  } catch (e) {
+    $("runMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`;
+  }
+});
+
+$("refreshBtn").addEventListener("click", loadAll);
+</script>
+<script>
+"use strict";
+async function loadAll(){
+  $("setupCard").classList.add("hidden");
+  $("main").classList.remove("hidden");
+  $("repoLabel").textContent = repo;
+  try {
+    const [info, runs, commits] = await Promise.all([
+      gh(`/repos/${repo}`),
+      gh(`/repos/${repo}/actions/runs?per_page=6`),
+      gh(`/repos/${repo}/commits?per_page=5`)
+    ]);
+    const rel = info.visibility || (info.private ? "private" : "public");
+    $("repoLabel").textContent = `${repo} · ${rel} · default branch: ${info.default_branch}`;
+
+    const total = runs.total_count || 0;
+    const succ = (runs.workflow_runs||[]).filter(r => r.conclusion === "success").length;
+    const last = runs.workflow_runs && runs.workflow_runs[0];
+    const since = last ? new Date(last.created_at).toLocaleString("id-ID", {timeZone:"Asia/Jakarta"}) : "-";
+    const next = "00:00 WIB harian";
+
+    $("stats").innerHTML =
+      stat(total, "Total run") +
+      stat(succ, "Run sukses (6 terakhir)") +
+      stat(info.stargazers_count || 0, "Bintang") +
+      stat(next, "Jadwal berikutnya");
+
+    let html = "";
+    (runs.workflow_runs||[]).forEach((r) => {
+      const t = new Date(r.created_at).toLocaleString("id-ID", {timeZone:"Asia/Jakarta"});
+      const ev = r.event === "schedule" ? "terjadwal" : (r.event === "workflow_dispatch" ? "manual" : r.event);
+      const title = r.display_title && r.display_title.length > 70 ? r.display_title.slice(0,70)+"…" : (r.display_title||"-");
+      html += `<div class="run">
+        <div class="top">
+          <span class="ttl">${esc(title)}</span>
+          ${statusBadge(r.status, r.conclusion)}
+        </div>
+        <div class="meta">${esc(t)} WIB · trigger: ${esc(ev)} · ${esc(r.head_branch||"")}</div>
+        <a href="${r.html_url}" target="_blank" rel="noopener">Lihat detail →</a>
+      </div>`;
+    });
+    $("runs").innerHTML = html || '<div class="sub">Belum ada run.</div>';
+
+    let chtml = "";
+    commits.forEach((c) => {
+      const t = new Date(c.commit.author.date).toLocaleString("id-ID", {timeZone:"Asia/Jakarta"});
+      const msg = c.commit.message.split("\n")[0];
+      chtml += `<div class="run">
+        <div class="top">
+          <span class="ttl"><code>${esc(c.sha.slice(0,7))}</code> ${esc(msg.length>64?msg.slice(0,64)+"…":msg)}</span>
+          ${badge("","b-blue", (c.commit.message.match(/^(feat|fix|chore|docs|test|style)\b/) || ["commit"])[0])}
+        </div>
+        <div class="meta">${esc(c.commit.author.name)} · ${esc(t)} WIB</div>
+      </div>`;
+    });
+    $("commits").innerHTML = chtml || '<div class="sub">Belum ada commit.</div>';
+  } catch (e) {
+    $("runs").innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    $("commits").innerHTML = "";
+    $("stats").innerHTML = "";
+  }
+}
+function stat(n, l){ return `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`; }
+
+// init
+if (repo && token) {
+  $("repoInput").value = repo;
+  loadAll();
+} else {
+  $("repoInput").value = "sikeeze/initialautomation";
+}
+</script>
+</body>
+</html>

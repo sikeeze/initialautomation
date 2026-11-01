@@ -15,6 +15,26 @@ on:
         description: 'Branch target (default: branch default repo)'
         required: false
         default: 'main'
+      run_link_check:
+        description: 'Aktifkan dead link check'
+        required: false
+        default: 'true'
+        type: boolean
+      run_stale_branch_report:
+        description: 'Aktifkan laporan branch stale'
+        required: false
+        default: 'true'
+        type: boolean
+      run_format_check:
+        description: 'Aktifkan pemeriksaan format'
+        required: false
+        default: 'true'
+        type: boolean
+      run_dependency_check:
+        description: 'Aktifkan cek dependency'
+        required: false
+        default: 'true'
+        type: boolean
 
 permissions:
   contents: write  # push commit maintenance
@@ -55,5 +75,9 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
           INPUT_BRANCH: ${{ github.event.inputs.branch || 'main' }}
           INPUT_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          INPUT_RUN_LINK_CHECK: ${{ github.event.inputs.run_link_check || 'true' }}
+          INPUT_RUN_STALE_BRANCH_REPORT: ${{ github.event.inputs.run_stale_branch_report || 'true' }}
+          INPUT_RUN_FORMAT_CHECK: ${{ github.event.inputs.run_format_check || 'true' }}
+          INPUT_RUN_DEPENDENCY_CHECK: ${{ github.event.inputs.run_dependency_check || 'true' }}
           LOG_LEVEL: ${{ env.LOG_LEVEL }}
         run: python run_daily.py
